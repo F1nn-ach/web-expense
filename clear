@@ -1,0 +1,150 @@
+[1mdiff --git a/.env b/.env[m
+[1mindex 88388ab..b7c66cd 100644[m
+[1m--- a/.env[m
+[1m+++ b/.env[m
+[36m@@ -1,3 +1,3 @@[m
+ PORT=3000[m
+[31m-GOOGLE_APPLICATION_CREDENTIALS=/web-expense.json[m
+[31m-REALTIME_DB_URL="https://web-expense-e4bee-default-rtdb.asia-southeast1.firebasedatabase.app/"[m
+\ No newline at end of file[m
+[32m+[m[32mGOOGLE_APPLICATION_CREDENTIALS=/home/f1nn/web-expense/service-account.json[m
+[32m+[m[32mREALTIME_DB_URL=https://web-expense-e4bee-default-rtdb.asia-southeast1.firebasedatabase.app/[m
+\ No newline at end of file[m
+[1mdiff --git a/cmd/web/main.go b/cmd/web/main.go[m
+[1mindex 8b9715e..584afdf 100644[m
+[1m--- a/cmd/web/main.go[m
+[1m+++ b/cmd/web/main.go[m
+[36m@@ -1,18 +1,31 @@[m
+ package main[m
+ [m
+ import ([m
+[32m+[m	[32m"log"[m
+ 	"os"[m
+ [m
+[32m+[m	[32m"github.com/F1nn-ach/web-expense/handler"[m
+ 	"github.com/F1nn-ach/web-expense/routes"[m
+ 	"github.com/gofiber/fiber/v2"[m
+[32m+[m	[32m"github.com/joho/godotenv"[m
+ )[m
+ [m
+ func main() {[m
+ 	app := fiber.New()[m
+ [m
+[31m-	app.Static("/", "./public")[m
+[32m+[m	[32mapp.Static("/", "./public/view")[m
+ 	app.Get("/login", routes.GetLoginRoute)[m
+[32m+[m	[32mapp.Post("/secure-action", handler.SecureAction)[m
+[32m+[m	[32mlog.Println("🚨 ROUTE /login UPDATED")[m
+[32m+[m
+[32m+[m	[32merr := godotenv.Load()[m
+[32m+[m	[32mif err != nil {[m
+[32m+[m		[32mlog.Fatal("Error Loading .env file")[m
+[32m+[m	[32m}[m
+ [m
+ 	port := os.Getenv("PORT")[m
+[32m+[m	[32mif port == "" {[m
+[32m+[m		[32mlog.Println("Have no port")[m
+[32m+[m	[32m}[m
+ 	app.Listen(":" + port)[m
+ }[m
+[1mdiff --git a/cmd/web/web b/cmd/web/web[m
+[1mindex ee3e1a0..85bf511 100755[m
+Binary files a/cmd/web/web and b/cmd/web/web differ
+[1mdiff --git a/go.mod b/go.mod[m
+[1mindex 902394e..1314fc6 100644[m
+[1m--- a/go.mod[m
+[1m+++ b/go.mod[m
+[36m@@ -36,6 +36,7 @@[m [mrequire ([m
+ 	github.com/google/uuid v1.6.0 // indirect[m
+ 	github.com/googleapis/enterprise-certificate-proxy v0.3.4 // indirect[m
+ 	github.com/googleapis/gax-go/v2 v2.14.1 // indirect[m
+[32m+[m	[32mgithub.com/joho/godotenv v1.5.1[m
+ 	github.com/klauspost/compress v1.17.9 // indirect[m
+ 	github.com/mattn/go-colorable v0.1.13 // indirect[m
+ 	github.com/mattn/go-isatty v0.0.20 // indirect[m
+[1mdiff --git a/handler/verify_token.go b/handler/verify_token.go[m
+[1mindex eb4cf8a..5933737 100644[m
+[1m--- a/handler/verify_token.go[m
+[1m+++ b/handler/verify_token.go[m
+[36m@@ -1,4 +1,4 @@[m
+[31m-package internal[m
+[32m+[m[32mpackage handler[m
+ [m
+ import ([m
+ 	"context"[m
+[36m@@ -28,5 +28,9 @@[m [mfunc SecureAction(c *fiber.Ctx) error {[m
+ [m
+ 	uid := token.UID[m
+ 	log.Println("🎉 Authenticated user:", uid)[m
+[32m+[m
+[32m+[m	[32mc.Cookie(&fiber.Cookie{[m
+[32m+[m		[32mName: ,[m
+[32m+[m	[32m})[m
+ 	return nil[m
+ }[m
+[1mdiff --git a/public/view/index.html b/public/view/index.html[m
+[1mindex 5d2886d..ae9d2fa 100644[m
+[1m--- a/public/view/index.html[m
+[1m+++ b/public/view/index.html[m
+[36m@@ -3,28 +3,25 @@[m
+ [m
+ <head>[m
+     <meta charset="UTF-8">[m
+[31m-    <title>Login with Google</title>[m
+[32m+[m[32m    <title>Login with Google (Namespaced API)</title>[m
+[32m+[m
+[32m+[m[32m    <!-- Firebase SDKs (Compat Versions) -->[m
+     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>[m
+     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>[m
+[31m-</head>[m
+[31m-[m
+[31m-<body>[m
+[31m-    <h2>Login with Google</h2>[m
+[31m-    <button onclick="loginWithGoogle()">Login</button>[m
+ [m
+     <script>[m
+[31m-        // 🛠 Replace ด้วย config ของโปรเจกต์มึงเอง[m
+[31m-        // For Firebase JS SDK v7.20.0 and later, measurementId is optional[m
+[32m+[m[32m        // Your web app's Firebase configuration[m
+         const firebaseConfig = {[m
+             apiKey: "AIzaSyC83k0MzOOpn9YRuyhA22z2y3s9QuLpKDY",[m
+             authDomain: "web-expense-e4bee.firebaseapp.com",[m
+             projectId: "web-expense-e4bee",[m
+[31m-            storageBucket: "web-expense-e4bee.firebasestorage.app",[m
+[32m+[m[32m            storageBucket: "web-expense-e4bee.appspot.com",[m
+             messagingSenderId: "821839923177",[m
+             appId: "1:821839923177:web:0f4c33e6f1708759672d78",[m
+             measurementId: "G-1MHQSQ89HG"[m
+         };[m
+ [m
+[32m+[m[32m        // Initialize Firebase[m
+         firebase.initializeApp(firebaseConfig);[m
+         const auth = firebase.auth();[m
+         const provider = new firebase.auth.GoogleAuthProvider();[m
+[36m@@ -53,6 +50,11 @@[m
+             }[m
+         }[m
+     </script>[m
+[32m+[m[32m</head>[m
+[32m+[m
+[32m+[m[32m<body>[m
+[32m+[m[32m    <h2>Login with Google</h2>[m
+[32m+[m[32m    <button onclick="loginWithGoogle()">Login</button>[m
+ </body>[m
+ [m
+[31m-</html>[m
+\ No newline at end of file[m
+[32m+[m[32m</html>[m
+[1mdiff --git a/run.sh b/run.sh[m
+[1mindex a71d1f6..a69e6e6 100755[m
+[1m--- a/run.sh[m
+[1m+++ b/run.sh[m
+[36m@@ -1 +1,3 @@[m
+[31m-CompileDaemon --directory=./cmd/web --command="./web-expense"[m
+[32m+[m[32mCompileDaemon \[m
+[32m+[m[32m  --build="go build -o web ./cmd/web" \[m
+[32m+[m[32m  --command="./web"[m
+[1mdiff --git a/web-expense b/web-expense[m
+[1mdeleted file mode 100755[m
+[1mindex d84b98e..0000000[m
+Binary files a/web-expense and /dev/null differ

@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <title>Login with Google (Namespaced API)</title>
+
+    <!-- Firebase SDKs (Compat Versions) -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
+
+    <script>
+        // Your web app's Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyC83k0MzOOpn9YRuyhA22z2y3s9QuLpKDY",
+            authDomain: "web-expense-e4bee.firebaseapp.com",
+            projectId: "web-expense-e4bee",
+            storageBucket: "web-expense-e4bee.appspot.com",
+            messagingSenderId: "821839923177",
+            appId: "1:821839923177:web:0f4c33e6f1708759672d78",
+            measurementId: "G-1MHQSQ89HG"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const provider = new firebase.auth.GoogleAuthProvider();
+
+        async function loginWithGoogle() {
+            try {
+                const result = await auth.signInWithPopup(provider);
+                const token = await result.user.getIdToken();
+
+                console.log("✅ Login Success! Token:", token);
+
+                // ส่ง token ไป backend
+                const res = await fetch("/secure-action", {
+                    method: "POST",
+                    headers: {
+                        "Authorization": token
+                    }
+                });
+
+                const text = await res.text();
+                alert(text);
+
+            } catch (err) {
+                console.error("❌ Login error:", err.message);
+                alert("Login failed: " + err.message);
+            }
+        }
+    </script>
+</head>
+
+<body>
+    <h2>Login with Google</h2>
+    <button onclick="loginWithGoogle()">Login</button>
+</body>
+
+</html>
